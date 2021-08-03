@@ -1,0 +1,39 @@
+{
+  "name": "leafx",
+  "description": "WebSocket Client",
+  "version": "0.0.1",
+  "author": "kocisov",
+  "bugs": "https://github.com/kocisov/leafx/issues",
+  "dependencies": {
+    "isomorphic-ws": "^4.0.1",
+    "mitt": "^3.0.0",
+    "ws": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.4.10",
+    "@types/ws": "^7.4.7",
+    "esbuild": "^0.12.17",
+    "ts-node": "^10.1.0",
+    "ts-node-dev": "^1.1.8",
+    "typescript": "^4.3.5"
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/kocisov/leafx",
+  "keywords": [
+    "Client",
+    "Leaf",
+    "WebSocket"
+  ],
+  "license": "MIT",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "repository": "https://github.com/kocisov/leafx.git",
+  "scripts": {
+    "build": "NODE_ENV=production ts-node scripts/build.ts && tsc --emitDeclarationOnly",
+    "dev": "ts-node-dev src/index.ts",
+    "start": "NODE_ENV=production node dist/index.js"
+  },
+  "types": "dist/index.d.ts"
+}
