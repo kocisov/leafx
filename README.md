@@ -1,4 +1,4 @@
-# leafx
+# leafx [![NPM](https://badgen.net/npm/v/leafx)](https://www.npmjs.com/package/leafx)
 
 > WebSocket Client
 
