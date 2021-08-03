@@ -1,7 +1,7 @@
 {
   "name": "leafx",
   "description": "WebSocket Client",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "author": "kocisov",
   "bugs": "https://github.com/kocisov/leafx/issues",
   "dependencies": {
@@ -33,6 +33,7 @@
   "scripts": {
     "build": "NODE_ENV=production ts-node scripts/build.ts && tsc --emitDeclarationOnly",
     "dev": "ts-node-dev src/index.ts",
+    "prepare": "yarn build",
     "start": "NODE_ENV=production node dist/index.js"
   },
   "types": "dist/index.d.ts"

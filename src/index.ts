@@ -3,7 +3,7 @@ import mitt from "mitt";
 
 const log = (...things: any[]) => console.log("[LEAF]", ...things);
 
-export type Options = {
+export type LeafOptions = {
   debug?: boolean;
   onMessage?: <T>(event: T) => void;
   onClose?: (event: CloseEvent) => void;
@@ -23,57 +23,62 @@ const getDataFromEvent = (event: MessageEvent, debug = false) => {
   }
 };
 
-export const leaf = (url: string, options: Options = {}) => {
-  const ws = new WebSocket(url);
+export const leaf = (url: string, options: LeafOptions = {}) => {
+  const raw = new WebSocket(url);
   const notSent: string[] = [];
   const emitter = mitt();
 
   let isConnected = false;
   let messageCount = 0;
 
-  ws.onopen = (event) => {
+  raw.onopen = (event) => {
     isConnected = true;
     options.debug && log(`Connection opened.`);
     options.onOpen?.(event);
     emitter.emit("open", event);
   };
 
-  ws.onclose = (event) => {
+  raw.onclose = (event) => {
     isConnected = false;
     options.debug && log(`Connection closed.`);
     options.onClose?.(event);
     emitter.emit("close", event);
   };
 
-  ws.onmessage = (event) => {
+  raw.onmessage = (event) => {
     const data = getDataFromEvent(event, options.debug);
     messageCount++;
     options.debug && log(`New message.`);
     options.onMessage?.(data);
-    emitter.emit(data.type ? data.type : "message", data);
+    if (data.type) {
+      emitter.emit(data.type, data);
+    }
+    emitter.emit("message", data);
   };
 
-  ws.onerror = (error) => {
-    options.debug && log(`Error: ${error.message}.`);
+  raw.onerror = (event) => {
+    options.debug && log(`Error: ${event.message}.`);
+    emitter.emit("error", event);
   };
 
   return {
-    raw: ws,
+    raw,
     isConnected: () => isConnected,
     messageCount: () => messageCount,
-    close: () => ws.close(),
+    close: () => raw.close(),
     on: emitter.on,
     off: emitter.off,
+    clear: emitter.all.clear,
     handleNotSent: () => {
       while (notSent.length) {
         const data = notSent.shift();
-        ws.send(data);
+        raw.send(data);
       }
     },
     send: <T>(data: T) => {
       const toSend = typeof data !== "string" ? JSON.stringify(data) : data;
-      if (ws.readyState === 1) {
-        ws.send(toSend);
+      if (raw.readyState === 1) {
+        raw.send(toSend);
       } else {
         notSent.push(toSend);
       }
