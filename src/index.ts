@@ -1,13 +1,13 @@
-import WebSocket, {CloseEvent, MessageEvent, OpenEvent} from "isomorphic-ws";
+import WebSocket, { CloseEvent, Event, MessageEvent } from "isomorphic-ws";
 import mitt from "mitt";
 
-const log = (...things: any[]) => console.log("[LEAF]", ...things);
+const log = <T>(...things: T[]) => console.log("[LEAF]", ...things);
 
 export type LeafOptions = {
   debug?: boolean;
   onMessage?: <T>(event: T) => void;
   onClose?: (event: CloseEvent) => void;
-  onOpen?: (event: OpenEvent) => void;
+  onOpen?: (event: Event) => void;
   on?: <T>(event: string, handler: (data: T) => void) => void;
   off?: <T>(event: string, handler: (data: T) => void) => void;
 };
@@ -19,11 +19,11 @@ const getDataFromEvent = (event: MessageEvent, debug = false) => {
     if (debug) {
       console.error(error);
     }
-    return {type: "unrecognized"};
+    return { type: "unrecognized" };
   }
 };
 
-export const leaf = (url: string, options: LeafOptions = {}) => {
+export const create = (url: string, options: LeafOptions = {}) => {
   const raw = new WebSocket(url);
   const notSent: string[] = [];
   const emitter = mitt();

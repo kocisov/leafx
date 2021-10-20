@@ -13,9 +13,9 @@ yarn add leafx
 ## Usage
 
 ```ts
-import {leaf} from "leafx";
+import { create } from "leafx";
 
-const ws = leaf("wss://echo.websocket.org", {
+const leaf = create("wss://echo.websocket.org", {
   // debug: true,
   onOpen: () => {
     console.log("WebSocket connected...");
@@ -25,16 +25,16 @@ const ws = leaf("wss://echo.websocket.org", {
   },
 });
 
-ws.send({
+leaf.send({
   type: "test",
   numbers: [1, 2, 4, 8, 16],
 });
 
-ws.on("test", (data) => {
+leaf.on("test", (data) => {
   console.log(data.numbers);
 });
 
 setTimeout(() => {
-  ws.handleNotSent();
+  leaf.handleNotSent();
 }, 5000);
 ```
