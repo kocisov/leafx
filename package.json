@@ -1,18 +1,33 @@
 {
   "name": "leafx",
-  "description": "WebSocket Client",
-  "version": "0.1.0",
+  "description": "WebSocket Client & Utilities",
+  "version": "0.1.1",
   "author": "kocisov",
   "bugs": "https://github.com/kocisov/leafx/issues",
+  "bundlesize": [
+    {
+      "path": "dist/index.js",
+      "maxSize": "1 kB"
+    },
+    {
+      "path": "dist/bare.js",
+      "maxSize": "1 kB"
+    },
+    {
+      "path": "dist/server.js",
+      "maxSize": "1 kB"
+    }
+  ],
   "dependencies": {
     "isomorphic-ws": "^4.0.1",
     "mitt": "^3.0.0",
     "ws": "^8.2.3"
   },
   "devDependencies": {
-    "@types/node": "^16.11.1",
+    "@types/node": "^16.11.6",
     "@types/ws": "^8.2.0",
-    "tsup": "^5.4.2",
+    "bundlesize2": "^0.0.31",
+    "tsup": "^5.5.0",
     "typescript": "^4.4.4"
   },
   "files": [
@@ -29,8 +44,8 @@
   "module": "dist/index.mjs",
   "repository": "https://github.com/kocisov/leafx.git",
   "scripts": {
-    "build": "NODE_ENV=production tsup src/index.ts --dts --format esm,cjs --env.NODE_ENV production --minify",
+    "build": "NODE_ENV=production tsup src/index.ts src/bare.ts src/server.ts --dts --format esm,cjs --env.NODE_ENV production --minify && yarn bundlesize",
     "prepare": "yarn build"
   },
-  "types": "dist/index.d.ts"
+  "types": "dist/client/index.d.ts"
 }

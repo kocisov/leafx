@@ -8,25 +8,26 @@ export type LeafOptions = {
   onMessage?: <T>(event: T) => void;
   onClose?: (event: CloseEvent) => void;
   onOpen?: (event: Event) => void;
-  on?: <T>(event: string, handler: (data: T) => void) => void;
-  off?: <T>(event: string, handler: (data: T) => void) => void;
+  matchTypeOn: string;
 };
 
-const getDataFromEvent = (event: MessageEvent, debug = false) => {
-  try {
-    return JSON.parse(event.data.toString());
-  } catch (error) {
-    if (debug) {
-      console.error(error);
-    }
-    return { type: "unrecognized" };
-  }
-};
-
-export const create = (url: string, options: LeafOptions = {}) => {
+export const create = (url: string, options: LeafOptions = { matchTypeOn: "type" }) => {
   const raw = new WebSocket(url);
   const notSent: string[] = [];
   const emitter = mitt();
+
+  const getDataFromEvent = (event: MessageEvent, debug = false) => {
+    try {
+      return JSON.parse(event.data.toString());
+    } catch (error) {
+      if (debug) {
+        console.error(error);
+      }
+      return {
+        [options.matchTypeOn]: "unrecognized",
+      };
+    }
+  };
 
   let isConnected = false;
   let messageCount = 0;
@@ -50,8 +51,8 @@ export const create = (url: string, options: LeafOptions = {}) => {
     messageCount++;
     options.debug && log(`New message.`);
     options.onMessage?.(data);
-    if (data.type) {
-      emitter.emit(data.type, data);
+    if (data[options.matchTypeOn]) {
+      emitter.emit(options.matchTypeOn, data);
     }
     emitter.emit("message", data);
   };
