@@ -1,13 +1,10 @@
 import type { WebSocket } from "ws";
+import { j } from ".";
 
 type Client = {
   id: string;
   ws: WebSocket;
 };
-
-function j<T>(data: T) {
-  return typeof data === "string" ? data : JSON.stringify(data);
-}
 
 const channels = new Map<string, Map<string, WebSocket>>();
 
@@ -43,13 +40,23 @@ function broadcastToChannel<T>(channel: string, data: T) {
   });
 }
 
-function sendToSpecificSubscriber<T>(channel: string, id: string, data: T) {
+function sendToSubscriber<T>(channel: string, id: string, data: T) {
   channels.get(channel)?.get(id)?.send(j(data));
+}
+
+function runForEachSubscriber(channel: string, run: (ws: WebSocket) => void) {
+  channels.get(channel)?.forEach(run);
+}
+
+function getSubscribersCount(channel: string) {
+  return channels.get(channel)?.size ?? 0;
 }
 
 export const lobby = {
   subscribe,
   unsubscribe,
   broadcastToChannel,
-  sendToSpecificSubscriber,
+  sendToSubscriber,
+  runForEachSubscriber,
+  getSubscribersCount,
 };

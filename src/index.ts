@@ -3,6 +3,10 @@ import mitt from "mitt";
 
 const log = <T>(...things: T[]) => console.log("[LEAF]", ...things);
 
+export function j<T>(data: T) {
+  return typeof data === "string" ? data : JSON.stringify(data);
+}
+
 export type LeafOptions = {
   debug?: boolean;
   onMessage?: <T>(event: T) => void;
