@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import { j } from ".";
+import { j } from "../utils/j";
 
 type Client = {
   id: string;

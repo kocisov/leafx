@@ -1,10 +1,8 @@
 import WebSocket, { CloseEvent, Event, MessageEvent } from "isomorphic-ws";
 import mitt from "mitt";
 
-const log = <T>(...things: T[]) => console.log("[LEAF]", ...things);
-
-export function j<T>(data: T) {
-  return typeof data === "string" ? data : JSON.stringify(data);
+function log<T>(...things: T[]) {
+  console.log("[LEAF]", ...things);
 }
 
 export type LeafOptions = {
@@ -15,7 +13,7 @@ export type LeafOptions = {
   matchTypeOn: string;
 };
 
-export const create = (url: string, options: LeafOptions = { matchTypeOn: "type" }) => {
+export function create(url: string, options: LeafOptions = { matchTypeOn: "type" }) {
   const raw = new WebSocket(url);
   const notSent: string[] = [];
   const emitter = mitt();
@@ -36,21 +34,21 @@ export const create = (url: string, options: LeafOptions = { matchTypeOn: "type"
   let isConnected = false;
   let messageCount = 0;
 
-  raw.onopen = (event) => {
+  raw.addEventListener("open", (event) => {
     isConnected = true;
     options.debug && log(`Connection opened.`);
     options.onOpen?.(event);
     emitter.emit("open", event);
-  };
+  });
 
-  raw.onclose = (event) => {
+  raw.addEventListener("close", (event) => {
     isConnected = false;
     options.debug && log(`Connection closed.`);
     options.onClose?.(event);
     emitter.emit("close", event);
-  };
+  });
 
-  raw.onmessage = (event) => {
+  raw.addEventListener("message", (event) => {
     const data = getDataFromEvent(event, options.debug);
     messageCount++;
     options.debug && log(`New message.`);
@@ -59,28 +57,32 @@ export const create = (url: string, options: LeafOptions = { matchTypeOn: "type"
       emitter.emit(options.matchTypeOn, data);
     }
     emitter.emit("message", data);
-  };
+  });
 
-  raw.onerror = (event) => {
+  raw.addEventListener("error", (event) => {
     options.debug && log(`Error: ${event.message}.`);
     emitter.emit("error", event);
-  };
+  });
 
   return {
     raw,
-    isConnected: () => isConnected,
-    messageCount: () => messageCount,
+    isConnected() {
+      return isConnected;
+    },
+    messageCount() {
+      return messageCount;
+    },
     close: () => raw.close(),
     on: emitter.on,
     off: emitter.off,
     clear: emitter.all.clear,
-    handleNotSent: () => {
+    handleNotSent() {
       while (notSent.length) {
         const data = notSent.shift();
         raw.send(data);
       }
     },
-    send: <T>(data: T) => {
+    send<T>(data: T) {
       const toSend = typeof data !== "string" ? JSON.stringify(data) : data;
       if (raw.readyState === 1) {
         raw.send(toSend);
@@ -89,4 +91,4 @@ export const create = (url: string, options: LeafOptions = { matchTypeOn: "type"
       }
     },
   };
-};
+}
