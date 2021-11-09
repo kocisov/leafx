@@ -17,27 +17,50 @@ yarn add leafx
 ```ts
 import { create } from "leafx";
 
-const leaf = create("wss://echo.websocket.org", {
-  // debug: true,
+type Events = {
+  "bts:subscription_succeeded": {
+    channel: string;
+  };
+
+  trade: {
+    data: {
+      price: number;
+    };
+  };
+
+  open: any;
+  message: {
+    event: string;
+  };
+};
+
+const leaf = create<Events>("wss://ws.bitstamp.net", {
+  debug: true,
+  matchTypeOn: "event",
   onOpen() {
-    console.log("WebSocket connected...");
-  },
-  onMessage(data) {
-    console.log("New message:", data);
+    console.log("Opened connection");
+
+    leaf.handleNotSent();
+
+    setInterval(() => {
+      leaf.send({ event: "bts:heartbeat" });
+    }, 25_000);
   },
 });
 
 leaf.send({
-  type: "test",
-  numbers: [1, 2, 4, 8, 16],
+  event: "bts:subscribe",
+  data: {
+    channel: "live_trades_btcusd",
+  },
 });
 
-leaf.on("test", (data) => {
-  console.log(data.numbers);
+leaf.on("bts:subscription_succeeded", (data) => {
+  console.log("Subscribed on", data.channel);
 });
 
-leaf.on("open", () => {
-  leaf.handleNotSent();
+leaf.on("trade", (event) => {
+  console.log("New trade @", event.data.price);
 });
 ```
 

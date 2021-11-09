@@ -1,5 +1,7 @@
-import WebSocket, { CloseEvent, Event, MessageEvent } from "isomorphic-ws";
+import WebSocket from "isomorphic-ws";
 import mitt from "mitt";
+import { CloseEvent, ErrorEvent, Event, MessageEvent } from "ws";
+import { j } from "./utils/j";
 
 function log<T>(...things: T[]) {
   console.log("[LEAF]", ...things);
@@ -13,10 +15,17 @@ export type LeafOptions = {
   matchTypeOn: string;
 };
 
-export function create(url: string, options: LeafOptions = { matchTypeOn: "type" }) {
+type Events = {
+  open?: Event;
+  close?: CloseEvent;
+  message: unknown;
+  error?: ErrorEvent;
+};
+
+export function create<E extends Events = any>(url: string, options: LeafOptions = { matchTypeOn: "type" }) {
   const raw = new WebSocket(url);
   const notSent: string[] = [];
-  const emitter = mitt();
+  const emitter = mitt<E>();
 
   const getDataFromEvent = (event: MessageEvent, debug = false) => {
     try {
@@ -54,7 +63,7 @@ export function create(url: string, options: LeafOptions = { matchTypeOn: "type"
     options.debug && log(`New message.`);
     options.onMessage?.(data);
     if (data[options.matchTypeOn]) {
-      emitter.emit(options.matchTypeOn, data);
+      emitter.emit(data[options.matchTypeOn], data);
     }
     emitter.emit("message", data);
   });
@@ -72,7 +81,9 @@ export function create(url: string, options: LeafOptions = { matchTypeOn: "type"
     messageCount() {
       return messageCount;
     },
-    close: () => raw.close(),
+    close() {
+      raw.close();
+    },
     on: emitter.on,
     off: emitter.off,
     clear: emitter.all.clear,
@@ -83,11 +94,10 @@ export function create(url: string, options: LeafOptions = { matchTypeOn: "type"
       }
     },
     send<T>(data: T) {
-      const toSend = typeof data !== "string" ? JSON.stringify(data) : data;
       if (raw.readyState === 1) {
-        raw.send(toSend);
+        raw.send(j(data));
       } else {
-        notSent.push(toSend);
+        notSent.push(j(data));
       }
     },
   };

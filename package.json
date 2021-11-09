@@ -1,7 +1,7 @@
 {
   "name": "leafx",
   "description": "WebSocket Client & Utilities",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "kocisov",
   "bugs": "https://github.com/kocisov/leafx/issues",
   "bundlesize": [
@@ -19,7 +19,6 @@
     }
   ],
   "dependencies": {
-    "fast-json-patch": "^3.1.0",
     "isomorphic-ws": "^4.0.1",
     "mitt": "^3.0.0",
     "ws": "^8.2.3"
@@ -34,7 +33,7 @@
   "exports": {
     "./server": "./dist/server/index.js",
     "./bare": "./dist/bare/index.js",
-    "./package.json": "./package.json"
+    ".": "./dist/index.js"
   },
   "files": [
     "dist"
