@@ -28,9 +28,6 @@ export function create(url: string) {
     close() {
       ws.close();
     },
-    reconnect() {
-      return create(url);
-    },
     send<T>(data: T) {
       ws.send(typeof data === "string" ? data : JSON.stringify(data));
     },

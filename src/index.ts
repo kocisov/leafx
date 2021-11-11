@@ -1,6 +1,6 @@
 import WebSocket from "isomorphic-ws";
 import mitt from "mitt";
-import { CloseEvent, ErrorEvent, Event, MessageEvent } from "ws";
+import type { CloseEvent, ErrorEvent, Event, MessageEvent } from "ws";
 import { j } from "./utils/j";
 
 function log<T>(...things: T[]) {
@@ -12,20 +12,21 @@ export type LeafOptions = {
   onMessage?: <T>(event: T) => void;
   onClose?: (event: CloseEvent) => void;
   onOpen?: (event: Event) => void;
-  matchTypeOn: string;
+  matchTypeOn?: string;
 };
 
-type Events = {
+type DefaultEvents = {
   open?: Event;
   close?: CloseEvent;
   message: unknown;
   error?: ErrorEvent;
 };
 
-export function create<E extends Events = any>(url: string, options: LeafOptions = { matchTypeOn: "type" }) {
+export function create<Events extends DefaultEvents = any>(url: string, options: LeafOptions) {
   const raw = new WebSocket(url);
   const notSent: string[] = [];
-  const emitter = mitt<E>();
+  const emitter = mitt<Events>();
+  const matchTypeOn = options.matchTypeOn ?? "type";
 
   const getDataFromEvent = (event: MessageEvent, debug = false) => {
     try {
@@ -35,7 +36,7 @@ export function create<E extends Events = any>(url: string, options: LeafOptions
         console.error(error);
       }
       return {
-        [options.matchTypeOn]: "unrecognized",
+        [matchTypeOn]: "unrecognized",
       };
     }
   };
@@ -62,8 +63,8 @@ export function create<E extends Events = any>(url: string, options: LeafOptions
     messageCount++;
     options.debug && log(`New message.`);
     options.onMessage?.(data);
-    if (data[options.matchTypeOn]) {
-      emitter.emit(data[options.matchTypeOn], data);
+    if (data[matchTypeOn]) {
+      emitter.emit(data[matchTypeOn], data);
     }
     emitter.emit("message", data);
   });
@@ -75,6 +76,9 @@ export function create<E extends Events = any>(url: string, options: LeafOptions
 
   return {
     raw,
+    on: emitter.on,
+    off: emitter.off,
+    clear: emitter.all.clear,
     isConnected() {
       return isConnected;
     },
@@ -84,9 +88,6 @@ export function create<E extends Events = any>(url: string, options: LeafOptions
     close() {
       raw.close();
     },
-    on: emitter.on,
-    off: emitter.off,
-    clear: emitter.all.clear,
     handleNotSent() {
       while (notSent.length) {
         const data = notSent.shift();
@@ -94,10 +95,11 @@ export function create<E extends Events = any>(url: string, options: LeafOptions
       }
     },
     send<T>(data: T) {
+      const toSend = j(data);
       if (raw.readyState === 1) {
-        raw.send(j(data));
+        raw.send(toSend);
       } else {
-        notSent.push(j(data));
+        notSent.push(toSend);
       }
     },
   };
