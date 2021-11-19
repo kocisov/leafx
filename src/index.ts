@@ -28,18 +28,18 @@ export function create<Events extends DefaultEvents = any>(url: string, options:
   const emitter = mitt<Events>();
   const matchTypeOn = options.matchTypeOn ?? "type";
 
-  const getDataFromEvent = (event: MessageEvent, debug = false) => {
+  function getDataFromEvent(event: MessageEvent) {
     try {
       return JSON.parse(event.data.toString());
     } catch (error) {
-      if (debug) {
+      if (options.debug) {
         console.error(error);
       }
       return {
         [matchTypeOn]: "unrecognized",
       };
     }
-  };
+  }
 
   let isConnected = false;
   let messageCount = 0;
@@ -59,7 +59,7 @@ export function create<Events extends DefaultEvents = any>(url: string, options:
   });
 
   raw.addEventListener("message", (event) => {
-    const data = getDataFromEvent(event, options.debug);
+    const data = getDataFromEvent(event);
     messageCount++;
     options.debug && log(`New message.`);
     options.onMessage?.(data);

@@ -34,6 +34,10 @@ function unsubscribe(channel: string, id: string) {
   }
 }
 
+function unsubscribeAll(id: string) {
+  channels?.forEach((channel) => channel.delete(id));
+}
+
 function broadcastToChannel<T>(channel: string, data: T) {
   channels.get(channel)?.forEach((client) => {
     client.send(j(data));
@@ -55,6 +59,7 @@ function getSubscribersCount(channel: string) {
 export const lobby = {
   subscribe,
   unsubscribe,
+  unsubscribeAll,
   broadcastToChannel,
   sendToSubscriber,
   runForEachSubscriber,

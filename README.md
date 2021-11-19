@@ -67,7 +67,7 @@ leaf.on("trade", (event) => {
 ### Server
 
 ```ts
-import { lobby } from "leafx/server";
+import { lobby, extendSocket } from "leafx/server";
 import { randomUUID } from "crypto";
 import { Server } from "ws";
 import type { WebSocket } from "ws";
@@ -83,8 +83,8 @@ const server = new Server({
   port: 3000,
 });
 
-server.on("connection", (ws: ExtendedWebSocket, req) => {
-  ws.id = randomUUID();
+server.on("connection", (socket: ExtendedWebSocket, req) => {
+  const ws = extendSocket(socket);
 
   ws.on("message", (message) => {
     const data = message.toString();
@@ -101,7 +101,7 @@ server.on("connection", (ws: ExtendedWebSocket, req) => {
   });
 
   ws.on("close", () => {
-    lobby.unsubscribe("testing", ws.id);
+    lobby.unsubscribeAll(ws.id);
   });
 });
 
